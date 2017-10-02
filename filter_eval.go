@@ -29,10 +29,29 @@ func Eval(e Expression, item todoist.Item) (result bool, err error) {
 	case StringExpr:
 		e := e.(StringExpr)
 		return EvalAsPriority(e, item), err
+	case DueDateExpr:
+		e := e.(DueDateExpr)
+		return EvalDueDate(e, item), err
 	default:
 		return true, err
 	}
 	return
+}
+
+func EvalDueDate(e DueDateExpr, item todoist.Item) (result bool) {
+	itemDueDate := item.DueDateTime()
+	dueDate := e.datetime
+	switch e.operation {
+	case DUE_ON:
+		startDate := dueDate
+		endDate := dueDate.AddDate(0, 0, 1)
+		if itemDueDate.Equal(startDate) || (itemDueDate.After(startDate) && itemDueDate.Before(endDate)) {
+			return true
+		}
+		return false
+	default:
+		return true
+	}
 }
 
 func EvalAsPriority(e StringExpr, item todoist.Item) (result bool) {
